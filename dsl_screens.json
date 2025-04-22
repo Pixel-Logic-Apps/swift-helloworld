@@ -1,0 +1,41 @@
+[
+  {
+    "id": "telaA",
+    "navigationBar": {
+      "title": "Formulário",
+      "displayMode": "large"
+    },
+    "components": [
+      { "type": "text", "value": "Preencha seus dados" },
+      { "type": "input", "bind": "form.nome" },
+      {
+        "type": "button",
+        "label": "Avançar",
+        "onTap": {
+          "action": "navigate",
+          "params": { "screen": "telaB" }
+        }
+      }
+    ]
+  },
+  {
+    "id": "telaB",
+    "navigationBar": {
+      "title": "Resumo",
+      "displayMode": "inline"
+    },
+    "components": [
+      {
+        "type": "text",
+        "value": {
+          "concat": ["Olá, ", { "var": "form.nome" }]
+        }
+      },
+      {
+        "type": "button",
+        "label": "Voltar",
+        "onTap": { "action": "navigateBack" }
+      }
+    ]
+  }
+]
