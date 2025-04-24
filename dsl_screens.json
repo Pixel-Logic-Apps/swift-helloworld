@@ -6,14 +6,78 @@
       "displayMode": "large"
     },
     "components": [
-      { "type": "text", "value": "Preencha seus dados" },
-      { "type": "input", "bind": "form.nome" },
+      {
+        "type": "text",
+        "value": "Preencha seus dados",
+        "style": { "fontSize": 32 }
+      },
+      {
+        "type": "input",
+        "bind": "form.nome",
+        "style": {
+          "fontSize": 16,
+          "fontWeight": "medium",
+          "foreground": "#333333",
+          "textAlignment": "leading",
+          "background": "#F0F0F0",
+          "cornerRadius": 8,
+          "borderColor": "#CCCCCC",
+          "borderWidth": 1,
+          "padding": 8
+        }
+      },
+      {
+        "type": "list",
+        "items": { "var": "form.lista" },
+        "style": {
+          "listStyle": "grouped",
+          "background": "#00ff00",
+          "rowBackground": "#0d403f",
+          "rowInset": 8,
+          "separatorHidden": true
+        },
+        "rowComponents": [
+          {
+            "type": "text",
+            "value": { "var": "title" },
+            "style": { "fontWeight": "medium", "fontSize": 16 }
+          },
+          {
+            "type": "text",
+            "value": { "var": "subtitle" },
+            "style": { "font": "caption", "foreground": "#0000ff" }
+          }
+        ]
+      },
       {
         "type": "button",
-        "label": "Avançar",
+        "label": "Adicionar",
+        "style": {
+          "fontSize": 16,
+          "fontWeight": "semibold",
+          "foreground": "#FFFFFF",
+          "background": "#000000",
+          "padding": 12,
+          "cornerRadius": 8
+        },
         "onTap": {
-          "action": "navigate",
-          "params": { "screen": "telaB" }
+          "sequence": [
+              {
+                "append": {
+                  "var": "form.lista",
+                  "value": {
+                    "title":    { "var": "form.nome" },
+                    "subtitle": "alguma descrição fixa ou vazia"
+                  }
+                }
+              },
+            {
+              "set": {
+                "var": "form.nome",
+                "value": ""
+              }
+            }
+          ]
         }
       }
     ]

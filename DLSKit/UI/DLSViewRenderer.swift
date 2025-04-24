@@ -20,16 +20,24 @@ struct DSLViewRenderer: View {
     }
 
     // MARK: - Subviews e Computed Properties
-
+    
+    // 1️⃣ Marque com @ViewBuilder
+    @ViewBuilder
     private var componentsView: some View {
-        ForEach(Array(screen.components.enumerated()), id: \.offset) { index, componentDict in
-            let component = componentDict.mapValues { $0.value }
-            if shouldShow(component) {
-                renderComponent(component)
+        ForEach(Array(screen.components.enumerated()), id: \.offset) { _, raw in
+            let props = raw.mapValues { $0.value }
+            if shouldShow(props) {
+                DSLComponentRegistry.shared
+                    .resolve(
+                      type: props["type"] as! String,
+                      props: props,
+                      interpreter: interpreter,
+                      router: router
+                    )
             }
         }
-
     }
+
 
     private func performOnAppearLogic() {
         guard !executed, let logic = screen.onAppearLogic else { return }
@@ -76,33 +84,13 @@ struct DSLViewRenderer: View {
     
     @ViewBuilder
     func renderComponent(_ component: [String: Any]) -> some View {
-        switch component["type"] as? String {
-        case "text":
-            let value = interpreter.evaluate(component["value"] ?? "") as? String ?? ""
-            Text(value)
-
-        case "input":
-            let bindingKey = component["bind"] as? String ?? ""
-            TextField("", text: Binding(
-                get: { interpreter.context.resolve(bindingKey) as? String ?? "" },
-                set: { interpreter.context.set(bindingKey, value: $0) }
-            ))
-            .textFieldStyle(.roundedBorder)
-
-        case "button":
-            let label = component["label"] as? String ?? "Botão"
-            Button(label) {
-                if let onTap = component["onTap"] {
-                    Task {
-                        await interpreter.execute(onTap, router: router)
-                    }
-                }
-            }
-            .buttonStyle(.borderedProminent)
-
-        default:
-            EmptyView()
-        }
+        let type = component["type"] as? String ?? ""
+        DSLComponentRegistry.shared.resolve(
+            type: type,
+            props: component,
+            interpreter: interpreter,
+            router: router
+        )
     }
 
     func shouldShow(_ component: [String: Any]) -> Bool {

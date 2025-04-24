@@ -1,65 +1,80 @@
 import SwiftUI
 
-// 1. Um ViewModifier que aplica o dicionário de estilos a qualquer View
-struct StyleModifier: ViewModifier {
+struct ButtonView: View {
+    let value: String
     let style: [String: Any]?
+    let onTap: () -> Void
 
-    func body(content: Content) -> some View {
-        // Começo encapsulado em AnyView para permitir mutações sucessivas
-        var view: AnyView = AnyView(content)
+    // Conteúdo do botão com estilos aplicados inline
+    private var buttonContent: AnyView {
+        var view: AnyView = AnyView(Text(value))
+        guard let style = style else { return view }
 
-        guard let style = style else {
-            return view
+        // Helper para converter Int/Double/CGFloat em CGFloat
+        func cg(_ any: Any?) -> CGFloat? {
+            if let f = any as? CGFloat { return f }
+            if let d = any as? Double  { return CGFloat(d) }
+            if let i = any as? Int     { return CGFloat(i) }
+            return nil
         }
 
-        // Fonte
-        if let fontSize = cg(style["fontSize"]) {
-            let weight = mapFontWeight(style["fontWeight"] as? String)
-            view = AnyView(view.font(.system(size: fontSize, weight: weight)))
+        // Fonte e peso
+        if let fs = cg(style["fontSize"]) {
+            let wt = mapFontWeight(style["fontWeight"] as? String)
+            view = AnyView(view.font(.system(size: fs, weight: wt)))
         }
 
-        // Cor do texto ou foreground
-        if let fgHex = style["foreground"] as? String,
-           let fgColor = Color(hex: fgHex) {
+        // Cor do texto
+        if let fg = style["foreground"] as? String,
+           let fgColor = Color(hex: fg) {
             view = AnyView(view.foregroundColor(fgColor))
         }
 
-        // Padding
-        if let padding = cg(style["padding"]) {
-            view = AnyView(view.padding(padding))
+        // Padding interno
+        if let pd = cg(style["padding"]) {
+            view = AnyView(view.padding(pd))
         }
 
-        // Background + cornerRadius
-        if let bgHex = style["background"] as? String,
-           let bgColor = Color(hex: bgHex) {
-            let radius = cg(style["cornerRadius"]) ?? 0
+        // Fundo + cornerRadius
+        if let bg = style["background"] as? String,
+           let bgColor = Color(hex: bg) {
+            let cr = cg(style["cornerRadius"]) ?? 0
             view = AnyView(
                 view
-                    .background(RoundedRectangle(cornerRadius: radius).fill(bgColor))
+                    .background(RoundedRectangle(cornerRadius: cr).fill(bgColor))
             )
         }
 
         // Borda
-        if let borderHex = style["borderColor"] as? String,
-           let borderColor = Color(hex: borderHex),
-           let borderWidth = cg(style["borderWidth"]) {
-            let radius = cg(style["cornerRadius"]) ?? 0
+        if let bc = style["borderColor"] as? String,
+           let borderColor = Color(hex: bc),
+           let bw = cg(style["borderWidth"]) {
+            let cr = cg(style["cornerRadius"]) ?? 0
             view = AnyView(
-                view.overlay(
-                    RoundedRectangle(cornerRadius: radius)
-                        .stroke(borderColor, lineWidth: borderWidth)
-                )
+                view
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cr)
+                            .stroke(borderColor, lineWidth: bw)
+                    )
             )
         }
 
         // Sombra
-        if let shadowRadius = cg(style["shadowRadius"]) {
-            view = AnyView(view.shadow(radius: shadowRadius))
+        if let sr = cg(style["shadowRadius"]) {
+            view = AnyView(view.shadow(radius: sr))
         }
 
         return view
     }
 
+    var body: some View {
+        Button(action: onTap) {
+            buttonContent
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Helper de peso de fonte
     private func mapFontWeight(_ str: String?) -> Font.Weight {
         switch str?.lowercased() {
         case "ultralight": return .ultraLight
@@ -69,29 +84,7 @@ struct StyleModifier: ViewModifier {
         case "semibold":   return .semibold
         case "bold":       return .bold
         case "heavy":      return .heavy
-        default:           return .regular
+        default:            return .regular
         }
-    }
-    
-    private func cg(_ any: Any?) -> CGFloat? {
-        if let f = any as? CGFloat     { return f }
-        if let d = any as? Double      { return CGFloat(d) }
-        if let i = any as? Int         { return CGFloat(i) }
-        return nil
-    }
-}
-
-// 2. O seu ButtonView, agora usando só Text + StyleModifier
-struct ButtonView: View {
-    let label: String
-    let style: [String: Any]?
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .modifier(StyleModifier(style: style))
-        }
-        .buttonStyle(.plain)
     }
 }
